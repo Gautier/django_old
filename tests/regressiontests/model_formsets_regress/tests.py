@@ -161,6 +161,19 @@ class InlineFormsetTests(TestCase):
         form = Form(instance=None)
         formset = FormSet(instance=None)
 
+    def test_inline_model_with_to_field(self):
+        "An inline model with a to_field of a formset with instance have working relations. Regression for #13794"
+        FormSet = inlineformset_factory(User, UserSite)
+
+        user = User.objects.create(username="guido", serial=1337)
+        UserSite.objects.create(user=user, data=10)
+        formset = FormSet(instance=user)
+
+        original_site1 = formset.get_queryset()[0]
+
+        # Testing the inline model's relation
+        self.assertEqual(original_site1.user.username, "guido")
+
     def test_empty_fields_on_modelformset(self):
         "No fields passed to modelformset_factory should result in no fields on returned forms except for the id. See #14119."
         UserFormSet = modelformset_factory(User, fields=())
